@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" /></head>
+  <style>
+    .autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+/*when hovering an item:*/
+.autocomplete-items div:hover {
+  background-color: #e9e9e9; 
+}
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important; 
+  color: #ffffff; 
+}
+  </style>
+<body>
+  
+   <br>
+   <!-- <form autocomplete="off" action="/action_page.php">
+    <div class="autocomplete" style="width:300px;">
+      <input id="myInput" type="text" name="myCountry" placeholder="Country">
+    </div>
+    <input type="submit">
+  </form> -->
+<form class="max-w-md mx-auto mb-px" action="/" method="POST">   
+    <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+            </svg>
+        </div>
+        <input type="search" id="myInput" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search Your City, Weather..." name="city" />
+        <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
+    </div>
+</form>
+<h1>
+   <br><br> 
+  
+    <% if (locals.result) { %>
+    <div class="max-w-sm mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-blue-500 p-4">
+          <h2 class="text-white text-2xl font-bold" id="city-name"><%= result.name  %></h2>
+          <p class="text-white text-lg" id="weather-description">Weather Description</p>
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-center">
+            <p class="text-gray-700 text-xl font-semibold" id="temperature">temperature : <%= result.main.temp %>°C</p>
+            <p class="text-gray-700" id="humidity">humidity: <%= result.main.humidity %></p>
+          </div>
+        </div>
+      </div>
+      <% } %>
+      <% if (locals.error) { %>
+        <div class="max-w-sm mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+          <div class="bg-red-500 p-4">
+            <h2 class="text-white text-2xl font-bold" id="city-name"><%= error  %></h2>
+          </div>
+       
+        </div>
+      <% } %>
+</h1>
+<!-- Button to get geolocation -->
+<% if (locals.weatherData) { %>
+    <div class="max-w-sm mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-blue-500 p-4">
+          <h2 class="text-white text-2xl font-bold" id="city-name"><%= weatherData.name  %></h2>
+          <p class="text-white text-lg" id="weather-description">Weather Description</p>
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-center">
+            <p class="text-gray-700 text-xl font-semibold" id="temperature">temperature : <%= weatherData.main.temp %>°C</p>
+            <p class="text-gray-700" id="humidity">humidity: <%= weatherData.main.humidity %></p>
+          </div>
+        </div>
+      </div>
+      <% } %>
+      
+<p id="status"></p>
+<a id="map-link" target="_blank"></a>
+<br>
+<form id="location-form" method="POST" action="/geolocation">
+    <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly hidden>
+    <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly hidden>
+    <center>
+        <button type="submit" class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:focus:ring-yellow-900">See My weather</button>
+    </center>
+</form>
+
+<script>
+   
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+            document.getElementById('status').textContent = "Geolocation is not supported by this browser.";
+        }
+   
+
+    function successCallback(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+
+        // Set the input values
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+
+        // Optionally, send the data to the server immediately
+        
+    }
+
+    function errorCallback(error) {
+        console.error(error);
+        document.getElementById('status').textContent = `Error: ${error.message}`;
+    }
+    function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+          if (x) x[currentFocus].click();
+        }
+      }
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+  });
+}
+
+/*An array containing all the country names in the world:*/
+var countries = [
+    "Casablanca", "Ifrane", "Rabat", "Fes", "Marrakech", "Tangier", "Agadir", "Meknes", 
+    "Oujda", "Kenitra", "Tetouan", "Safi", "Mohammedia", "Khouribga", 
+    "El Jadida", "Beni Mellal", "Ait Melloul", "Nador", "Dar Bouazza", 
+    "Taza", "Sidi Slimane", "Settat", "Berrechid", "Sidi Kacem", 
+    "Ksar El Kebir", "Taroudant", "Berkane", "Dcheira El Jihadia", 
+    "Inezgane", "Sidi Bennour", "Temara", "Youssoufia", "Essaouira", 
+    "Moulay Abdallah", "Guercif", "Ouarzazate", "Larache", "Khenifra", 
+    "Guelmim", "Ben Guerir", "Tan-Tan", "Taourirt", "Sefrou", "Oulad Teima", 
+    "Fquih Ben Salah", "Skhirat", "Sidi Yahia El Gharb", "Oulad Ayad", 
+    "Zagora", "Laayoune", "Kasba Tadla", "Assilah", "Ahfir", "Midelt", 
+    "Ain Harrouda", "Oued Zem", "Tifelt", "Chefchaouen", "El Aioun Sidi Mellouk", 
+    "Bouznika", "Errachidia", "Smara", "Sidi Ifni", "Tiznit", "Azrou", 
+    "Martil", "Dakhla", "Azemmour"
+];
+
+
+/*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+autocomplete(document.getElementById("myInput"), countries);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+</body>
+</html>
